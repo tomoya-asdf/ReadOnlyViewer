@@ -1,0 +1,138 @@
+/* General */
+QWidget {
+    font-family: "Segoe UI", "Meiryo UI", sans-serif;
+    font-size: 10pt;
+    color: #333;
+}
+
+QMainWindow {
+    background-color: #f0f2f5;
+}
+
+/* QTreeView */
+QTreeView {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+    selection-background-color: #a8d8ff; /* Light blue for selection */
+    selection-color: #333;
+    alternate-background-color: #f8f8f8;
+}
+
+QTreeView::item {
+    padding: 3px 0;
+}
+
+QTreeView::item:selected {
+    background-color: #a8d8ff;
+    color: #333;
+}
+
+/* QTextEdit (Preview Area) */
+QTextEdit {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    line-height: 1.5;
+}
+
+/* QLabel (PDF Preview and Page Label) */
+QLabel {
+    color: #333;
+}
+
+QLabel#pdf_preview { /* Use objectName for specific styling */
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+/* QLineEdit (Search Bars) */
+QLineEdit {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+QLineEdit:focus {
+    border: 1px solid #007bff;
+}
+
+/* QComboBox (Filter Box) */
+QComboBox {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    selection-background-color: #007bff;
+    selection-color: #fff;
+}
+
+QComboBox::drop-down {
+    border: 0px;
+}
+
+QComboBox::down-arrow {
+    /* image: url(down_arrow.png); */ /* Placeholder for an actual arrow icon */
+    width: 12px;
+    height: 12px;
+}
+
+/* QPushButton */
+QPushButton {
+    background-color: #007bff; /* Primary blue */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    min-width: 80px;
+}
+
+QPushButton:hover {
+    background-color: #0056b3;
+}
+
+QPushButton:pressed {
+    background-color: #004085;
+}
+
+/* Clear Search Button */
+QPushButton#clear_search_button {
+    background-color: #dc3545; /* Red for clear */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 0px; /* Adjust padding for smaller size */
+    min-width: 24px;
+    max-width: 24px;
+    min-height: 24px;
+    max-height: 24px;
+}
+
+QPushButton#clear_search_button:hover {
+    background-color: #c82333;
+}
+
+QPushButton#clear_search_button:pressed {
+    background-color: #bd2130;
+}
+
+/* QStatusBar */
+QStatusBar {
+    background-color: #e9ecef;
+    border-top: 1px solid #ddd;
+    padding: 3px;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+/* Layout Spacing */
+QHBoxLayout, QVBoxLayout {
+    spacing: 10px;
+}
