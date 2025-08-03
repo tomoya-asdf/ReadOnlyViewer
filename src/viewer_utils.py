@@ -77,7 +77,7 @@ def extract_pptx_text(filepath):
     return text
 
 def extract_csv_text(filepath):
-    encodings_to_try = ['utf-8', 'shift_jis', 'cp932', 'euc_jp', 'iso2022_jp']
+    encodings_to_try = ['utf-8', 'utf-16', 'shift_jis', 'cp932', 'euc_jp', 'iso2022_jp']
     for encoding in encodings_to_try:
         try:
             rows = []
@@ -102,7 +102,7 @@ def extract_docx_text(filepath):
     return "\n".join(p.text for p in doc.paragraphs)
 
 def extract_text_file(filepath):
-    encodings_to_try = ['utf-8', 'shift_jis', 'cp932', 'euc_jp', 'iso2022_jp']
+    encodings_to_try = ['utf-8', 'utf-16', 'shift_jis', 'cp932', 'euc_jp', 'iso2022_jp']
     for encoding in encodings_to_try:
         try:
             with open(filepath, "r", encoding=encoding) as f:
