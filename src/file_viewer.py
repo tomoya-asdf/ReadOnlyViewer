@@ -141,6 +141,7 @@ class FileViewer(QMainWindow):
         return found_files, keyword
 
     def search_finished(self, result):
+        print("search finished")
         found_files, keyword = result
         if found_files:
             self.previewer.set_search_text("検索結果:\n" + "\n".join(found_files))

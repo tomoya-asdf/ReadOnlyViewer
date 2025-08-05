@@ -1,7 +1,7 @@
-
 PyQt6
 PyMuPDF
 openpyxl
 python-pptx
 python-docx
+extract-msg
 chardet

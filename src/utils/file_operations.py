@@ -5,11 +5,14 @@ from pptx import Presentation
 import csv
 import docx
 import chardet
+from extract_msg import Message
+import email # 追加
+from email import policy # 追加
 
 # --- Text Extraction Functions ---
-
 def extract_text_preview(filepath):
     """Extracts text from various file types for preview."""
+    print(f"extract: {filepath}")
     ext = os.path.splitext(filepath)[1].lower()
     try:
         if ext == ".pdf":
@@ -22,6 +25,10 @@ def extract_text_preview(filepath):
             return extract_docx_text(filepath)
         elif ext == ".csv":
             return extract_csv_text(filepath)
+        elif ext == ".msg":
+            return extract_msg_text(filepath)
+        elif ext == ".eml": # 追加
+            return extract_eml_text(filepath) # 追加
         else:
             # For other extensions, attempt to read as a text file.
             return extract_text_file(filepath)
@@ -101,3 +108,70 @@ def detect_encoding(filepath, sample_size=4096):
             return result['encoding']
     except (IOError, IndexError):
         return None
+
+def extract_msg_text(filepath):
+    """Extracts text content from .msg files."""
+    try:
+        msg = Message(filepath)
+        text_content = []
+        if msg.subject:
+            text_content.append(f"Subject: {msg.subject}")
+        if msg.sender:
+            text_content.append(f"From: {msg.sender}")
+        if msg.to:
+            text_content.append(f"To: {msg.to}")
+        if msg.cc:
+            text_content.append(f"CC: {msg.cc}")
+        if msg.date:
+            text_content.append(f"Date: {msg.date}")
+        text_content.append("---")
+        if msg.body:
+            text_content.append(msg.body)
+        return "".join(text_content)
+    except Exception as e:
+        return f"Error extracting MSG file: {e}"
+
+def extract_eml_text(filepath): # 追加
+    """Extracts text content from .eml files."""
+    try:
+        with open(filepath, 'rb') as fp:
+            msg = email.message_from_binary_file(fp, policy=policy.default)
+
+        text_content = []
+        if msg['subject']:
+            text_content.append(f"Subject: {msg['subject']}")
+        if msg['from']:
+            text_content.append(f"From: {msg['from']}")
+        if msg['to']:
+            text_content.append(f"To: {msg['to']}")
+        if msg['cc']:
+            text_content.append(f"CC: {msg['cc']}")
+        if msg['date']:
+            text_content.append(f"Date: {msg['date']}")
+        text_content.append("---")
+
+        if msg.is_multipart():
+            for part in msg.walk():
+                ctype = part.get_content_type()
+                cdispo = part.get('Content-Disposition')
+
+                # extract plain text body
+                if ctype == 'text/plain' and 'attachment' not in (cdispo or ''):
+                    payload = part.get_payload(decode=True)
+                    charset = part.get_content_charset()
+                    if charset:
+                        text_content.append(payload.decode(charset, errors='ignore'))
+                    else:
+                        text_content.append(payload.decode('utf-8', errors='ignore')) # Fallback
+                    break # Only get the first plain text part
+        else:
+            payload = msg.get_payload(decode=True)
+            charset = msg.get_content_charset()
+            if charset:
+                text_content.append(payload.decode(charset, errors='ignore'))
+            else:
+                text_content.append(payload.decode('utf-8', errors='ignore')) # Fallback
+
+        return "\n".join(text_content)
+    except Exception as e:
+        return f"Error extracting EML file: {e}"
