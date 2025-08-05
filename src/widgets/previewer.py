@@ -49,11 +49,10 @@ class Previewer(QWidget):
 
         self.hide_pdf_controls()
 
-    def show_text_preview(self, temp_path):
+    def show_text_preview(self, text_content):
         self.current_pdf_path = None
         self.hide_pdf_controls()
-        text = extract_text_preview(temp_path)
-        self.text_preview.setText(text)
+        self.text_preview.setText(text_content)
         self.preview_stack.setCurrentWidget(self.text_preview)
 
     def show_pdf_preview(self, temp_path):

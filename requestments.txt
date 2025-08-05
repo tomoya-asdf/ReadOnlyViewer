@@ -1,5 +1,0 @@
-PyQt6
-openpyxl
-python-docx
-python-pptx
-pymupdf
