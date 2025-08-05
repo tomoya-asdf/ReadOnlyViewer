@@ -18,10 +18,11 @@ QTreeView {
     selection-background-color: #a8d8ff; /* Light blue for selection */
     selection-color: #333;
     alternate-background-color: #f8f8f8;
+    indentation: 20; /* Slightly wider indentation */
 }
 
 QTreeView::item {
-    padding: 3px 0;
+    padding: 4px 0; /* Increased padding for better spacing */
 }
 
 QTreeView::item:selected {
@@ -35,7 +36,7 @@ QTextEdit {
     border: 1px solid #ddd;
     border-radius: 5px;
     padding: 10px;
-    line-height: 1.5;
+    font-family: "Consolas", "Monaco", monospace; /* Monospaced font for code */
 }
 
 /* QLabel (PDF Preview and Page Label) */
@@ -52,7 +53,7 @@ QLabel#pdf_preview { /* Use objectName for specific styling */
 
 /* QLineEdit (Search Bars) */
 QLineEdit {
-    padding: 8px;
+    padding: 6px 10px; /* Adjusted padding */
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #fff;
@@ -64,7 +65,7 @@ QLineEdit:focus {
 
 /* QComboBox (Filter Box) */
 QComboBox {
-    padding: 8px;
+    padding: 6px 10px; /* Adjusted padding */
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #fff;
@@ -77,7 +78,6 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    /* image: url(down_arrow.png); */ /* Placeholder for an actual arrow icon */
     width: 12px;
     height: 12px;
 }
@@ -89,37 +89,38 @@ QPushButton {
     border: none;
     border-radius: 5px;
     padding: 8px 15px;
-    min-width: 80px;
 }
 
 QPushButton:hover {
-    background-color: #0056b3;
+    background-color: #0069d9;
 }
 
 QPushButton:pressed {
-    background-color: #004085;
+    background-color: #0056b3;
 }
 
-/* Clear Search Button */
-QPushButton#clear_search_button {
-    background-color: #dc3545; /* Red for clear */
+/* Specific buttons */
+#back_button, #pdf_prev_button, #pdf_next_button {
+    min-width: 40px;
+}
+
+#clear_search_button {
+    background-color: #6c757d; /* Gray */
     color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 0px; /* Adjust padding for smaller size */
+    font-weight: bold;
     min-width: 24px;
     max-width: 24px;
-    min-height: 24px;
-    max-height: 24px;
+    padding: 0;
 }
 
-QPushButton#clear_search_button:hover {
-    background-color: #c82333;
+#clear_search_button:hover {
+    background-color: #5a6268;
 }
 
-QPushButton#clear_search_button:pressed {
-    background-color: #bd2130;
+#clear_search_button:pressed {
+    background-color: #545b62;
 }
+
 
 /* QStatusBar */
 QStatusBar {
@@ -132,7 +133,16 @@ QStatusBar::item {
     border: none;
 }
 
-/* Layout Spacing */
-QHBoxLayout, QVBoxLayout {
-    spacing: 10px;
+/* QSplitter */
+QSplitter::handle {
+    background-color: #e9ecef;
+    border: 1px solid #ddd;
+}
+
+QSplitter::handle:horizontal {
+    width: 1px; /* Make it thin */
+}
+
+QSplitter::handle:hover {
+    background-color: #007bff;
 }
