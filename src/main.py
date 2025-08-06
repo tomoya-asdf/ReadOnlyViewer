@@ -8,6 +8,8 @@ if __name__ == "__main__":
     freeze_support()
 
     app = QApplication(sys.argv)
+    app.setOrganizationName("DevApp")
+    app.setApplicationName("ReadOnlyViewer")
     
     # Create the process pool and pass it to the main window
     try:

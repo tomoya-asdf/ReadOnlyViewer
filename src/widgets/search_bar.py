@@ -19,7 +19,7 @@ class SearchBar(QWidget):
         # Main search bar for file/folder names
         search_layout = QHBoxLayout()
         self.search_bar = QLineEdit()
-        self.search_bar.setPlaceholderText("ファイル名またはフォルダ名でフィルタリング...")
+        self.search_bar.setPlaceholderText("ファイル名またはフォルダ名でフィルタリング（正規表現で指定可）")
         self.search_bar.textChanged.connect(self.filter_changed.emit)
         search_layout.addWidget(self.search_bar)
 
