@@ -8,7 +8,7 @@ from PyQt6.QtCore import QDir, Qt, QThreadPool
 from widgets.file_tree_view import FileTreeView
 from widgets.previewer import Previewer
 from widgets.search_bar import SearchBar
-from utils.worker import Worker
+from utils.worker import Worker, WorkerSignals
 # Import the new search worker
 from utils.search_worker import search_file_worker, get_cached_text_preview
 
@@ -19,6 +19,7 @@ class FileViewer(QMainWindow):
         self.setGeometry(100, 100, 1400, 800)
         self.temp_files = []
         self.threadpool = QThreadPool()
+        self.signals = WorkerSignals()
         # The process pool will be created under the __main__ guard
         self.process_pool = None
 
@@ -76,6 +77,9 @@ class FileViewer(QMainWindow):
     def set_process_pool(self, pool):
         self.process_pool = pool
 
+    def update_status(self, message):
+        self.statusBar.showMessage(message)
+
     def select_initial_directory(self):
         return QFileDialog.getExistingDirectory(
             self,
@@ -129,15 +133,36 @@ class FileViewer(QMainWindow):
         self.previewer.set_search_text(f"'{keyword}' を検索中 (並列処理実行中)...")
         self.statusBar.showMessage(f"'{keyword}' を検索中...", 0)
 
-        worker = Worker(self._search_in_background, keyword, current_path)
+        # Pass the signals object to the worker
+        worker = Worker(self._search_in_background, keyword, current_path, signals=self.signals)
         worker.signals.result.connect(self.search_finished)
         worker.signals.error.connect(self.search_error)
+        worker.signals.progress.connect(self.update_status)  # Connect progress signal
         self.threadpool.start(worker)
 
     def _search_in_background(self, keyword, current_path):
-        all_files = [os.path.join(root, file) for root, _, files in os.walk(current_path) for file in files]
-        results = self.process_pool.map(search_file_worker, [(file, keyword) for file in all_files])
-        found_files = [res for res in results if res is not None]
+        found_files = []
+        tasks = ((os.path.join(root, file), keyword) for root, _, files in os.walk(current_path) for file in files)
+
+        num_cpus = cpu_count()
+        try:
+            # Avoid division by zero if the directory is empty or has very few files.
+            num_files = sum(1 for _ in os.walk(current_path) for _ in _[2])
+            chunksize = max(1, num_files // (num_cpus * 4)) if num_files > 0 else 1
+        except OSError:
+            chunksize = 1 # Fallback if os.listdir fails (e.g., permissions)
+
+        try:
+            for file_path, found in self.process_pool.imap_unordered(search_file_worker, tasks, chunksize=chunksize):
+                # The worker now has its own signals instance passed from the main thread
+                self.signals.progress.emit(f"検索中: {os.path.basename(file_path)}")
+                if found:
+                    found_files.append(file_path)
+        except Exception as e:
+            print(f"An error occurred during search: {e}")
+            # It is better to emit an error signal to be handled by the main thread
+            self.signals.error.emit(('Search Error', str(e), traceback.format_exc()))
+
         return found_files, keyword
 
     def search_finished(self, result):
@@ -171,5 +196,7 @@ class FileViewer(QMainWindow):
 
     def closeEvent(self, event):
         self.cleanup_temp_files()
-        # The pool is managed in main.py now
+        if self.process_pool:
+            self.process_pool.terminate()
+            self.process_pool.join() # Wait for the terminated processes to be cleaned up
         event.accept()

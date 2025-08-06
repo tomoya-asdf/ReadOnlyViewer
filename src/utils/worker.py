@@ -10,6 +10,7 @@ class WorkerSignals(QObject):
     finished = pyqtSignal()
     error = pyqtSignal(tuple)
     result = pyqtSignal(object)
+    progress = pyqtSignal(object)
 
 class Worker(QRunnable):
     """
@@ -20,8 +21,9 @@ class Worker(QRunnable):
         super(Worker, self).__init__()
         self.fn = fn
         self.args = args
+        # Extract signals instance if passed in kwargs
+        self.signals = kwargs.pop('signals', WorkerSignals())
         self.kwargs = kwargs
-        self.signals = WorkerSignals()
 
     @pyqtSlot()
     def run(self):

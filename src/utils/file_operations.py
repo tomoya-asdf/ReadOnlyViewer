@@ -12,7 +12,7 @@ from email import policy # 追加
 # --- Text Extraction Functions ---
 def extract_text_preview(filepath):
     """Extracts text from various file types for preview."""
-    print(f"extract: {filepath}")
+    #print(f"extract: {filepath}")
     ext = os.path.splitext(filepath)[1].lower()
     try:
         if ext == ".pdf":
