@@ -129,44 +129,45 @@ class FileViewer(QMainWindow):
             self.statusBar.showMessage("検索プロセスが準備できていません。", 3000)
             return
 
-        current_path = self.file_tree_view.get_current_directory()
-        self.previewer.set_search_text(f"'{keyword}' を検索中 (並列処理実行中)...")
+        # Get the list of currently visible (filtered) files
+        filtered_files = self.file_tree_view.get_filtered_file_list()
+        if not filtered_files:
+            self.previewer.set_search_text("検索対象のファイルがありません。")
+            self.statusBar.showMessage("フィルタリングされたファイルがありません。", 3000)
+            return
+
+        self.previewer.set_search_text(f"'{keyword}' を {len(filtered_files)} 件のファイルから検索中...")
         self.statusBar.showMessage(f"'{keyword}' を検索中...", 0)
 
-        # Pass the signals object to the worker
-        worker = Worker(self._search_in_background, keyword, current_path, signals=self.signals)
+        # Pass the list of files to the worker
+        worker = Worker(self._search_in_background, keyword, filtered_files, signals=self.signals)
         worker.signals.result.connect(self.search_finished)
         worker.signals.error.connect(self.search_error)
-        worker.signals.progress.connect(self.update_status)  # Connect progress signal
+        worker.signals.progress.connect(self.update_status)
         self.threadpool.start(worker)
 
-    def _search_in_background(self, keyword, current_path):
+    def _search_in_background(self, keyword, file_list):
         found_files = []
-        tasks = ((os.path.join(root, file), keyword) for root, _, files in os.walk(current_path) for file in files)
+        tasks = [(file_path, keyword) for file_path in file_list]
+
+        if not tasks:
+            return [], keyword
 
         num_cpus = cpu_count()
-        try:
-            # Avoid division by zero if the directory is empty or has very few files.
-            num_files = sum(1 for _ in os.walk(current_path) for _ in _[2])
-            chunksize = max(1, num_files // (num_cpus * 4)) if num_files > 0 else 1
-        except OSError:
-            chunksize = 1 # Fallback if os.listdir fails (e.g., permissions)
+        chunksize = max(1, len(tasks) // (num_cpus * 4))
 
         try:
             for file_path, found in self.process_pool.imap_unordered(search_file_worker, tasks, chunksize=chunksize):
-                # The worker now has its own signals instance passed from the main thread
                 self.signals.progress.emit(f"検索中: {os.path.basename(file_path)}")
                 if found:
                     found_files.append(file_path)
         except Exception as e:
             print(f"An error occurred during search: {e}")
-            # It is better to emit an error signal to be handled by the main thread
             self.signals.error.emit(('Search Error', str(e), traceback.format_exc()))
 
         return found_files, keyword
 
     def search_finished(self, result):
-        print("search finished")
         found_files, keyword = result
         if found_files:
             self.previewer.set_search_text("検索結果:\n" + "\n".join(found_files))

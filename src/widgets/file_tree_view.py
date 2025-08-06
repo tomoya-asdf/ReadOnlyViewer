@@ -94,3 +94,30 @@ class FileTreeView(QWidget):
     def get_current_directory(self):
         source_index = self.proxy_model.mapToSource(self.tree.rootIndex())
         return self.model.filePath(source_index)
+
+    def get_filtered_file_list(self):
+        """Recursively fetches the list of all visible files under the current root."""
+        visible_files = []
+        root_index = self.tree.rootIndex()
+
+        # Stack for iterative traversal
+        stack = [root_index]
+
+        while stack:
+            parent_index = stack.pop()
+            for row in range(self.proxy_model.rowCount(parent_index)):
+                index = self.proxy_model.index(row, 0, parent_index)
+                if not index.isValid():
+                    continue
+
+                source_index = self.proxy_model.mapToSource(index)
+                file_path = self.model.filePath(source_index)
+                
+                # If it's a directory, add to stack to traverse its children
+                if self.model.isDir(source_index):
+                    stack.append(index)
+                # If it's a file, add its path to the list
+                else:
+                    visible_files.append(file_path)
+        
+        return visible_files
