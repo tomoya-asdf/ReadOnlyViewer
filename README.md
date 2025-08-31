@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/files-to-prompt/blob/master/LICENSE)
+
 # 読み取り専用ファイルビューア
 
 このアプリケーションは、指定されたディレクトリ内の様々なファイルを読み取り専用で表示するためのデスクトップアプリケーションです。PyQt6で構築されており、PDF、Microsoft Officeドキュメント（.docx, .xlsx, .pptx）、CSV、および一般的なテキストファイルの内容をプレビューできます。
@@ -62,4 +64,4 @@ python src/main.py
 
 ## ライセンス
 
-[ここにライセンス情報を記載してください。例: MIT License]
+MIT License
