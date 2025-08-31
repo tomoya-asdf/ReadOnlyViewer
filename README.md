@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/files-to-prompt/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/tomoya-asdf/ReadOnlyViewer/blob/main/LICENSE)
 
 # 読み取り専用ファイルビューア
 
@@ -21,7 +21,7 @@
 
 1. **リポジリのクローン**:
    ```bash
-   git clone https://github.com/your-username/read_only_viewer.git
+   git clone https://github.com/tomoya-asdf/ReadOnlyViewer.git 
    cd read_only_viewer
    ```
 
