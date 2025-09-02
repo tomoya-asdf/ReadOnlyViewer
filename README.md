@@ -22,7 +22,7 @@
 1. **リポジリのクローン**:
    ```bash
    git clone https://github.com/tomoya-asdf/ReadOnlyViewer.git 
-   cd read_only_viewer
+   cd ReadOnlyViewer
    ```
 
 2. **仮想環境の作成とアクティベート**:
@@ -35,9 +35,9 @@
    ```
 
 3. **依存関係のインストール**:
-   `requestments.txt` に記載されているライブラリをインストールします。
+   `requirements.txt` に記載されているライブラリをインストールします。
    ```bash
-   pip install -r requestments.txt
+   pip install -r requirements.txt
    ```
 
 ## 実行方法
@@ -56,7 +56,7 @@ python src/main.py
 - openpyxl
 - python-docx
 - python-pptx
-- その他、`requestments.txt` に記載のライブラリ
+- その他、`requirements.txt` に記載のライブラリ
 
 ## 貢献
 
@@ -64,4 +64,4 @@ python src/main.py
 
 ## ライセンス
 
-MIT License
+Apache License 2.0
