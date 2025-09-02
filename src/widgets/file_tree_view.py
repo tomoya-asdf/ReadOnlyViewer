@@ -7,6 +7,34 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTreeView, QLineE
 from PyQt6.QtCore import QDir, Qt, pyqtSignal, QSortFilterProxyModel
 from PyQt6.QtGui import QFileSystemModel, QShortcut, QKeySequence
 
+class PathFilterProxyModel(QSortFilterProxyModel):
+    """Keep the current root directory always visible to prevent fallback to drives."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._pinned_root_path: str | None = None
+        self._fs_model: QFileSystemModel | None = None
+
+    def setSourceModel(self, source) -> None:  # type: ignore[override]
+        super().setSourceModel(source)
+        # QFileSystemModel への参照を保持
+        self._fs_model = source
+
+    def set_pinned_root_path(self, path: str) -> None:
+        self._pinned_root_path = os.path.normcase(os.path.abspath(path))
+
+    def filterAcceptsRow(self, source_row: int, source_parent) -> bool:  # type: ignore[override]
+        if self._fs_model is not None and self._pinned_root_path:
+            idx = self._fs_model.index(source_row, 0, source_parent)
+            if idx.isValid():
+                item_path = os.path.normcase(self._fs_model.filePath(idx))
+                # ピン止めしたルートは常に表示
+                if item_path == self._pinned_root_path:
+                    return True
+        # それ以外は標準の判定（再帰フィルタ有効）
+        return super().filterAcceptsRow(source_row, source_parent)
+
+
 class FileTreeView(QWidget):
     file_double_clicked = pyqtSignal(str)
     directory_changed = pyqtSignal(str)
@@ -26,7 +54,7 @@ class FileTreeView(QWidget):
         self.model.setRootPath(QDir.rootPath())
         self.model.setFilter(QDir.Filter.AllDirs | QDir.Filter.AllEntries | QDir.Filter.NoDotAndDotDot)
 
-        self.proxy_model = QSortFilterProxyModel()
+        self.proxy_model = PathFilterProxyModel()
         self.proxy_model.setSourceModel(self.model)
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.proxy_model.setRecursiveFilteringEnabled(True)
@@ -34,7 +62,9 @@ class FileTreeView(QWidget):
         self.tree = QTreeView()
         self.tree.setModel(self.proxy_model)
         self.tree.setColumnWidth(0, 300)
-        self.tree.setRootIndex(self.proxy_model.mapFromSource(self.model.index(self.initial_dir)))
+        root_src_idx = self.model.index(self.initial_dir)
+        self.proxy_model.set_pinned_root_path(self.initial_dir)
+        self.tree.setRootIndex(self.proxy_model.mapFromSource(root_src_idx))
         self.tree.doubleClicked.connect(self.on_item_double_clicked)
         self.tree.setHeaderHidden(True)
         self.tree.setIndentation(15)
@@ -66,6 +96,8 @@ class FileTreeView(QWidget):
         else:
             self.tree.setRootIndex(index)
             self.path_bar.setText(file_path)
+            # ルート固定（フィルタで隠れないようにする）
+            self.proxy_model.set_pinned_root_path(file_path)
             self.directory_changed.emit(file_path)
 
     def on_path_entered(self) -> None:
@@ -76,6 +108,7 @@ class FileTreeView(QWidget):
                 proxy_index = self.proxy_model.mapFromSource(source_index)
                 self.tree.setRootIndex(proxy_index)
                 self.tree.scrollTo(proxy_index)
+                self.proxy_model.set_pinned_root_path(path)
                 self.directory_changed.emit(path)
         elif os.path.isfile(path):
             self.file_double_clicked.emit(path)
@@ -89,6 +122,7 @@ class FileTreeView(QWidget):
             self.tree.setRootIndex(parent_proxy_index)
             file_path = self.model.filePath(parent_source_index)
             self.path_bar.setText(file_path)
+            self.proxy_model.set_pinned_root_path(file_path)
             self.directory_changed.emit(file_path)
 
     def apply_filter(self, filter_pattern: str) -> None:
