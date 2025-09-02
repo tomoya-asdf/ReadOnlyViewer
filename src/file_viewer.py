@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import os
 import shutil
 import sys
 import tempfile
 from multiprocessing import cpu_count
+from typing import Iterable, List, Tuple
 
 from PyQt6.QtCore import QDir, QSettings, QThreadPool, Qt
 from PyQt6.QtWidgets import QFileDialog, QMainWindow, QSplitter, QStatusBar, QVBoxLayout, QWidget
@@ -18,7 +21,7 @@ class FileViewer(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("読み取り専用 ファイルビューア")
-        self.temp_files: list[str] = []
+        self.temp_files: List[str] = []
         self.threadpool = QThreadPool()
         self.signals = WorkerSignals()
         self.process_pool = None
@@ -42,7 +45,7 @@ class FileViewer(QMainWindow):
         self.init_ui()
         self.load_settings()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         self.search_bar = SearchBar()
         self.file_tree_view = FileTreeView(self.initial_dir)
         self.previewer = Previewer()
@@ -74,13 +77,13 @@ class FileViewer(QMainWindow):
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
 
-    def set_process_pool(self, pool):
+    def set_process_pool(self, pool) -> None:
         self.process_pool = pool
 
-    def update_status(self, message):
+    def update_status(self, message: str) -> None:
         self.statusBar.showMessage(message)
 
-    def select_initial_directory(self, default_dir):
+    def select_initial_directory(self, default_dir: str) -> str:
         return QFileDialog.getExistingDirectory(
             self,
             "最初に開くフォルダを選択してください",
@@ -94,7 +97,7 @@ class FileViewer(QMainWindow):
         filter_pattern = self.search_bar.get_filter_pattern()
         self.file_tree_view.apply_filter(filter_pattern)
 
-    def on_file_selected(self, file_path):
+    def on_file_selected(self, file_path: str) -> None:
         # When selecting a file from search results, don't clear the keyword
         is_from_search = (
             self.previewer.stack.currentWidget() == self.previewer.search_results_view
@@ -108,7 +111,7 @@ class FileViewer(QMainWindow):
         worker.signals.error.connect(self.preview_error)
         self.threadpool.start(worker)
 
-    def generate_preview(self, file_path):
+    def generate_preview(self, file_path: str) -> Tuple[str, str, str]:
         temp_path = self.copy_to_temp_readonly(file_path)
         ext = os.path.splitext(temp_path)[1].lower()
         if ext == ".pdf":
@@ -117,18 +120,18 @@ class FileViewer(QMainWindow):
             text = get_cached_text_preview(temp_path)
             return ("text", text, file_path)
 
-    def display_preview(self, result):
+    def display_preview(self, result: Tuple[str, str, str]) -> None:
         preview_type, content, original_path = result
         if preview_type == "pdf":
             self.previewer.show_pdf_preview(content, original_path)
         else:
             self.previewer.show_text_preview(content, original_path)
 
-    def preview_error(self, error_tuple):
+    def preview_error(self, error_tuple) -> None:
         print(error_tuple)
         self.previewer.set_info_text("プレビューの生成中にエラーが発生しました。")
 
-    def search_file_contents(self, keyword):
+    def search_file_contents(self, keyword: str) -> None:
         if not keyword:
             self.statusBar.showMessage("検索キーワードを入力してください。", 2000)
             return
@@ -153,8 +156,8 @@ class FileViewer(QMainWindow):
         search_worker_thread.signals.error.connect(self.search_error)
         self.threadpool.start(search_worker_thread)
 
-    def _search_in_background(self, keyword, file_list):
-        found_files = []
+    def _search_in_background(self, keyword: str, file_list: List[str]):
+        found_files: List[str] = []
         tasks = [(file_path, keyword) for file_path in file_list]
 
         if not tasks:
@@ -174,7 +177,7 @@ class FileViewer(QMainWindow):
 
         return (found_files, keyword)
 
-    def search_finished(self, result):
+    def search_finished(self, result: Tuple[List[str], str]) -> None:
         found_files, keyword = result
         self.previewer.display_search_results(found_files, keyword)
         if found_files:
@@ -188,12 +191,12 @@ class FileViewer(QMainWindow):
                 5000,
             )
 
-    def search_error(self, error_tuple):
+    def search_error(self, error_tuple) -> None:
         print(error_tuple)
         self.previewer.set_info_text("ファイル検索中にエラーが発生しました。")
         self.statusBar.showMessage("エラーが発生しました。", 5000)
 
-    def copy_to_temp_readonly(self, path):
+    def copy_to_temp_readonly(self, path: str) -> str:
         with tempfile.NamedTemporaryFile(
             delete=False, mode='w+b', suffix=os.path.splitext(path)[1]
         ) as tmp_file:
@@ -202,31 +205,30 @@ class FileViewer(QMainWindow):
         self.temp_files.append(tmp_file.name)
         return tmp_file.name
 
-    def cleanup_temp_files(self):
+    def cleanup_temp_files(self) -> None:
         for f in self.temp_files:
             try:
                 os.remove(f)
             except OSError as e:
                 print(f"Error removing temporary file {f}: {e}")
 
-    def load_settings(self):
+    def load_settings(self) -> None:
         settings = QSettings()
         self.restoreGeometry(settings.value("geometry", self.saveGeometry()))
         self.main_splitter.restoreState(
             settings.value("splitter_state", self.main_splitter.saveState())
         )
 
-    def save_settings(self):
+    def save_settings(self) -> None:
         settings = QSettings()
         settings.setValue("geometry", self.saveGeometry())
         settings.setValue("splitter_state", self.main_splitter.saveState())
         settings.setValue("last_dir", self.file_tree_view.get_current_directory())
 
-    def closeEvent(self, event):
+    def closeEvent(self, event) -> None:
         self.save_settings()
         self.cleanup_temp_files()
         if self.process_pool:
             self.process_pool.terminate()
             self.process_pool.join()
         event.accept()
-

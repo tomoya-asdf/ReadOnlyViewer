@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 import os
+from typing import List, Optional
+
 import fitz  # PyMuPDF
 import openpyxl
 from pptx import Presentation
@@ -6,12 +10,12 @@ import csv
 import docx
 import chardet
 from extract_msg import Message
-import email # 追加
-from email import policy # 追加
+import email
+from email import policy
 
 # --- Text Extraction Functions ---
-def extract_text_preview(filepath):
-    """Extracts text from various file types for preview."""
+def extract_text_preview(filepath: str) -> str:
+    """Extract text from various file types for preview."""
     #print(f"extract: {filepath}")
     ext = os.path.splitext(filepath)[1].lower()
     try:
@@ -36,11 +40,11 @@ def extract_text_preview(filepath):
         # This is a fallback for binary files or read errors.
         return f"プレビュー中にエラーが発生しました: {e}"
 
-def extract_pdf_text(filepath):
+def extract_pdf_text(filepath: str) -> str:
     with fitz.open(filepath) as doc:
         return "".join(page.get_text() for page in doc)
 
-def render_pdf_as_pixmaps(filepath, dpi=96):
+def render_pdf_as_pixmaps(filepath: str, dpi: int = 96):
     try:
         with fitz.open(filepath) as doc:
             matrix = fitz.Matrix(dpi / 72, dpi / 72)
@@ -49,7 +53,7 @@ def render_pdf_as_pixmaps(filepath, dpi=96):
         print(f"PDFレンダリングエラー: {e}")
         return []
 
-def extract_excel_text(filepath):
+def extract_excel_text(filepath: str) -> str:
     wb = openpyxl.load_workbook(filepath, read_only=True, data_only=True)
     text = []
     for sheet in wb.worksheets:
@@ -59,7 +63,7 @@ def extract_excel_text(filepath):
             text.append(line)
     return "\n".join(text)
 
-def extract_pptx_text(filepath):
+def extract_pptx_text(filepath: str) -> str:
     prs = Presentation(filepath)
     text = []
     for i, slide in enumerate(prs.slides):
@@ -69,11 +73,11 @@ def extract_pptx_text(filepath):
                 text.append(shape.text)
     return "\n".join(text)
 
-def extract_docx_text(filepath):
+def extract_docx_text(filepath: str) -> str:
     doc = docx.Document(filepath)
     return "\n".join(p.text for p in doc.paragraphs)
 
-def extract_csv_text(filepath):
+def extract_csv_text(filepath: str) -> str:
     encoding = detect_encoding(filepath) or 'utf-8'
     rows = []
     try:
@@ -88,8 +92,8 @@ def extract_csv_text(filepath):
         # Fallback to raw text read if CSV parsing fails
         return extract_text_file(filepath)
 
-def extract_text_file(filepath):
-    """Reads a plain text file with robust encoding detection."""
+def extract_text_file(filepath: str) -> str:
+    """Read a plain text file with robust encoding detection."""
     encoding = detect_encoding(filepath)
     try:
         with open(filepath, "r", encoding=encoding or 'utf-8', errors='ignore') as f:
@@ -99,8 +103,8 @@ def extract_text_file(filepath):
         with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
             return f.read()
 
-def detect_encoding(filepath, sample_size=4096):
-    """Detects the encoding of a file by reading a sample."""
+def detect_encoding(filepath: str, sample_size: int = 4096) -> Optional[str]:
+    """Detect the encoding of a file by reading a sample."""
     try:
         with open(filepath, 'rb') as f:
             sample = f.read(sample_size)
@@ -109,8 +113,8 @@ def detect_encoding(filepath, sample_size=4096):
     except (IOError, IndexError):
         return None
 
-def extract_msg_text(filepath):
-    """Extracts text content from .msg files."""
+def extract_msg_text(filepath: str) -> str:
+    """Extract text content from .msg files."""
     try:
         msg = Message(filepath)
         text_content = []
@@ -131,8 +135,8 @@ def extract_msg_text(filepath):
     except Exception as e:
         return f"Error extracting MSG file: {e}"
 
-def extract_eml_text(filepath): # 追加
-    """Extracts text content from .eml files."""
+def extract_eml_text(filepath: str) -> str:
+    """Extract text content from .eml files."""
     try:
         with open(filepath, 'rb') as fp:
             msg = email.message_from_binary_file(fp, policy=policy.default)

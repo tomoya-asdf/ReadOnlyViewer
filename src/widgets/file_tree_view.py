@@ -1,5 +1,8 @@
+from __future__ import annotations
 
 import os
+from typing import List
+
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTreeView, QLineEdit, QPushButton
 from PyQt6.QtCore import QDir, Qt, pyqtSignal, QSortFilterProxyModel
 from PyQt6.QtGui import QFileSystemModel, QShortcut, QKeySequence
@@ -8,12 +11,12 @@ class FileTreeView(QWidget):
     file_double_clicked = pyqtSignal(str)
     directory_changed = pyqtSignal(str)
 
-    def __init__(self, initial_dir, parent=None):
+    def __init__(self, initial_dir: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.initial_dir = initial_dir
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -55,7 +58,7 @@ class FileTreeView(QWidget):
         layout.addLayout(path_layout)
         layout.addWidget(self.tree)
 
-    def on_item_double_clicked(self, index):
+    def on_item_double_clicked(self, index) -> None:
         source_index = self.proxy_model.mapToSource(index)
         file_path = self.model.filePath(source_index)
         if os.path.isfile(file_path):
@@ -65,7 +68,7 @@ class FileTreeView(QWidget):
             self.path_bar.setText(file_path)
             self.directory_changed.emit(file_path)
 
-    def on_path_entered(self):
+    def on_path_entered(self) -> None:
         path = self.path_bar.text()
         if os.path.isdir(path):
             source_index = self.model.index(path)
@@ -77,7 +80,7 @@ class FileTreeView(QWidget):
         elif os.path.isfile(path):
             self.file_double_clicked.emit(path)
 
-    def go_to_parent_directory(self):
+    def go_to_parent_directory(self) -> None:
         current_index = self.tree.rootIndex()
         source_index = self.proxy_model.mapToSource(current_index)
         parent_source_index = source_index.parent()
@@ -88,16 +91,16 @@ class FileTreeView(QWidget):
             self.path_bar.setText(file_path)
             self.directory_changed.emit(file_path)
 
-    def apply_filter(self, filter_pattern):
+    def apply_filter(self, filter_pattern: str) -> None:
         self.proxy_model.setFilterRegularExpression(filter_pattern)
 
-    def get_current_directory(self):
+    def get_current_directory(self) -> str:
         source_index = self.proxy_model.mapToSource(self.tree.rootIndex())
         return self.model.filePath(source_index)
 
-    def get_filtered_file_list(self):
-        """Recursively fetches the list of all visible files under the current root."""
-        visible_files = []
+    def get_filtered_file_list(self) -> List[str]:
+        """Recursively fetch the list of all visible files under the current root."""
+        visible_files: List[str] = []
         root_index = self.tree.rootIndex()
 
         # Stack for iterative traversal

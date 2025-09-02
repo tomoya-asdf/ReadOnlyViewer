@@ -1,7 +1,21 @@
+from __future__ import annotations
 
 import os
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QLabel, 
-                             QPushButton, QStackedWidget, QListWidget, QListWidgetItem, QMenu, QApplication)
+from typing import List
+
+from PyQt6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QTextEdit,
+    QLabel,
+    QPushButton,
+    QStackedWidget,
+    QListWidget,
+    QListWidgetItem,
+    QMenu,
+    QApplication,
+)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap, QImage, QTextCharFormat, QTextCursor, QColor, QTextDocument
 
@@ -10,7 +24,7 @@ from utils.file_operations import render_pdf_as_pixmaps
 class Previewer(QWidget):
     file_selected_from_search = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.current_pdf_path = None
         self.current_pdf_page = 0
@@ -18,7 +32,7 @@ class Previewer(QWidget):
         self.search_keyword = ""
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(main_layout)
@@ -89,11 +103,11 @@ class Previewer(QWidget):
 
         self.stack.setCurrentWidget(self.info_view)
 
-    def set_info_text(self, text):
+    def set_info_text(self, text: str) -> None:
         self.info_view.setText(text)
         self.stack.setCurrentWidget(self.info_view)
 
-    def show_text_preview(self, text_content, file_path):
+    def show_text_preview(self, text_content: str, file_path: str) -> None:
         self.preview_stack.setCurrentWidget(self.text_preview)
         self.pdf_controls.hide()
         self.back_button.setVisible(bool(self.search_keyword))
@@ -104,7 +118,7 @@ class Previewer(QWidget):
         # Always call highlight_keyword. It will handle resetting if the keyword is empty.
         self.highlight_keyword(self.search_keyword)
 
-    def highlight_keyword(self, keyword):
+    def highlight_keyword(self, keyword: str) -> None:
         cursor = self.text_preview.textCursor()
         cursor.beginEditBlock()
 
@@ -142,7 +156,7 @@ class Previewer(QWidget):
             self.text_preview.setTextCursor(first_match_cursor)
 
 
-    def show_pdf_preview(self, temp_path, file_path):
+    def show_pdf_preview(self, temp_path: str, file_path: str) -> None:
         self.current_pdf_path = temp_path
         self.current_pdf_page = 0
         self.preview_stack.setCurrentWidget(self.pdf_preview)
@@ -152,7 +166,7 @@ class Previewer(QWidget):
         self.display_pdf_page(0)
         self.stack.setCurrentWidget(self.preview_view)
 
-    def display_pdf_page(self, page_num):
+    def display_pdf_page(self, page_num: int) -> None:
         images = render_pdf_as_pixmaps(self.current_pdf_path)
         if not images:
             self.set_info_text("PDFプレビューエラー")
@@ -167,15 +181,15 @@ class Previewer(QWidget):
         scaled_pixmap = pixmap.scaled(self.pdf_preview.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         self.pdf_preview.setPixmap(scaled_pixmap)
 
-    def show_prev_pdf_page(self):
+    def show_prev_pdf_page(self) -> None:
         if self.current_pdf_page > 0:
             self.display_pdf_page(self.current_pdf_page - 1)
 
-    def show_next_pdf_page(self):
+    def show_next_pdf_page(self) -> None:
         if self.current_pdf_page < self.total_pdf_pages - 1:
             self.display_pdf_page(self.current_pdf_page + 1)
 
-    def display_search_results(self, found_files, keyword):
+    def display_search_results(self, found_files: List[str], keyword: str) -> None:
         self.search_keyword = keyword
         self.search_results_list.clear()
         if not found_files:
@@ -187,18 +201,18 @@ class Previewer(QWidget):
             self.search_results_list.addItem(item)
         self.show_search_results()
 
-    def show_search_results(self):
+    def show_search_results(self) -> None:
         self.stack.setCurrentWidget(self.search_results_view)
 
-    def on_search_result_selected(self, item):
+    def on_search_result_selected(self, item: QListWidgetItem) -> None:
         self.file_selected_from_search.emit(item.text())
 
-    def clear_preview(self, clear_keyword=True):
+    def clear_preview(self, clear_keyword: bool = True) -> None:
         self.set_info_text("")
         if clear_keyword:
             self.search_keyword = ""
 
-    def show_search_result_context_menu(self, pos):
+    def show_search_result_context_menu(self, pos) -> None:
         if not self.search_results_list.itemAt(pos):
             return
         

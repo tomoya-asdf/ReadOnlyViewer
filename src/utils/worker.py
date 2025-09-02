@@ -1,6 +1,9 @@
+from __future__ import annotations
 
 import sys
 import traceback
+from typing import Any, Callable
+
 from PyQt6.QtCore import QObject, QRunnable, pyqtSignal, pyqtSlot
 
 class WorkerSignals(QObject):
@@ -17,16 +20,16 @@ class Worker(QRunnable):
     Worker thread
     Inherits from QRunnable to handle worker thread setup, signals, and wrap-up.
     """
-    def __init__(self, fn, *args, **kwargs):
+    def __init__(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         super(Worker, self).__init__()
-        self.fn = fn
+        self.fn: Callable[..., Any] = fn
         self.args = args
         # Extract signals instance if passed in kwargs
-        self.signals = kwargs.pop('signals', WorkerSignals())
+        self.signals: WorkerSignals = kwargs.pop('signals', WorkerSignals())
         self.kwargs = kwargs
 
     @pyqtSlot()
-    def run(self):
+    def run(self) -> None:
         """
         Initialise the runner function with passed args, kwargs.
         """
